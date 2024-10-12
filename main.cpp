@@ -2,7 +2,7 @@
 using namespace std;
 
 struct Node {
-    int data;
+    string data;
     Node* next;
 };
 
@@ -44,7 +44,7 @@ public:
         return listLength == 0;
     }
 
-    int peek() { // возвращает значение первого элемента без его удаления
+    string peek() { // возвращает значение первого элемента без его удаления
         if (head != nullptr)
             return head->data;
         throw runtime_error("List is empty");
@@ -72,8 +72,8 @@ int main() {
     setlocale(0, "");
     LinkedList st;
     cout << st.isEmpty() << "\n";
-    st.push(5);
-    st.push(6);
+    st.push('5');
+    st.push('6');
     st.printList();
     st.pop();
     cout << st.peek() << "\n";
