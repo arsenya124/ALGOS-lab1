@@ -1,5 +1,6 @@
 #include <iostream>
 using namespace std;
+
 struct Node {
     int data;
     Node* next;
@@ -12,10 +13,11 @@ private:
 
 public:
     LinkedList() {
-        head = nullptr;
+        head = nullptr; // Убираем Node*, чтобы инициализировать член класса
         listLength = 0;
     }
-    void push(int value) { //добавляет элемент в начало списка
+
+    void push(int value) { // добавляет элемент в начало списка
         Node* newValue = new Node;
         newValue->data = value;
         if (listLength > 0)
@@ -25,50 +27,48 @@ public:
         head = newValue;
         listLength++;
     }
-    void pop() { //удаляет элемент из начала списка 
-        //Проверка на дурачка добавить
+
+    void pop() { // удаляет элемент из начала списка
         if (listLength > 0) {
             Node* currValue = head;
             head = currValue->next;
             delete currValue;
-            listLength--;
+            listLength--; // Уменьшение длины списка внутри проверки
         }
         else {
-            cout << "List is empty, you can't delete value!";
+            cout << "List is empty, you can't delete value!" << endl;
         }
-        
     }
+
     int isEmpty() {
         return listLength == 0;
-
     }
-    int peek() {  //возвращает значение первого элемента без его удаления
-        return head->data;
 
+    int peek() { // возвращает значение первого элемента без его удаления
+        if (head != nullptr)
+            return head->data;
+        throw runtime_error("List is empty");
     }
+
     void printList() {
         cout << "Stack contains " << listLength << " element(s):\n";
         Node* currValue = head;
         for (int i = 0; i < listLength; i++) {
             cout << i + 1 << " - " << currValue->data << "\n";
-            currValue = currValue->next;
+            currValue = currValue->next; // Продвигаем указатель на следующий элемент
         }
-
     }
-    ~LinkedList() {
-        if (listLength > 0) {
-            for (int i = 0; i < listLength; i++) {
-                Node* currValue = head;
-                head = head->next;
-                delete currValue;
 
-            }
+    ~LinkedList() {
+        while (head != nullptr) {
+            Node* currValue = head;
+            head = head->next;
+            delete currValue;
         }
     }
 };
 
-int main()
-{
+int main() {
     setlocale(0, "");
     LinkedList st;
     cout << st.isEmpty() << "\n";
@@ -76,6 +76,7 @@ int main()
     st.push(6);
     st.printList();
     st.pop();
-    cout << st.peek();
-    
+    cout << st.peek() << "\n";
+
+    return 0;
 }
