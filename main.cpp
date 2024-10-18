@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 using namespace std;
 #include <string>
 
@@ -6,6 +7,7 @@ struct Node {
     string data;
     Node* next;
 };
+
 struct DoublyNode {
     string data;
     DoublyNode* prev;
@@ -46,7 +48,7 @@ public:
         }
     }
 
-    int isEmpty() {
+    bool isEmpty() {
         return listLength == 0;
     }
 
@@ -137,7 +139,7 @@ public:
         if (listLength > 0) {
             DoublyNode* currNode = head;
             head = head->next;
-            head->prev = nullptr;
+            if(head != nullptr) head->prev = nullptr;
             delete currNode;
             listLength--;
         }
@@ -151,7 +153,7 @@ public:
         if (listLength > 0) {
             DoublyNode* currNode = back;
             back = back->prev;
-            back->next = nullptr;
+            if (back != nullptr) back->next = nullptr;
             delete currNode;
             listLength--;
         }
@@ -222,6 +224,9 @@ public:
         }
 
     }
+    bool isEmpty() {
+        return listLength == 0;
+    }
 
     /*void deleteAt(int index) {
         if ((index >= 0) and (index < listLength)) {
@@ -245,31 +250,203 @@ public:
             currValue = currValue->next; // Продвигаем указатель на следующий элемент
         }
     }
-
+    */
     ~DoublyLinkedList() {
         while (head != nullptr) {
-            Node* currValue = head;
+            DoublyNode* currValue = head;
             head = head->next;
             delete currValue;
         }
     }
-    */
+    
 };
 
+class DynamicArray {
+private:
+    int* data;         // Указатель на массив
+    int currentSize;   // Текущий размер массива
+    int currentCapacity; // Текущая емкость массива
+
+    void resize(int newCapacity) {
+        if (newCapacity <= currentCapacity) return; // Не нужно увеличивать, если новая емкость меньше или равна текущей
+
+        int* newData = new int[newCapacity]; // Выделение новой памяти
+        for (int i = 0; i < currentSize; i++) {
+            newData[i] = data[i]; // Копируем старые данные в новый массив
+        }
+        delete[] data; // Освобождаем старую память
+        data = newData; // Указываем на новый массив
+        currentCapacity = newCapacity; // Обновляем текущую емкость
+    }
+
+public:
+    DynamicArray() {
+        currentSize = 0;
+        currentCapacity = 2; // Начальная емкость
+        data = new int[currentCapacity]; // Выделяем память
+    }
+
+    void pushBack(int value) {
+        if (currentSize == currentCapacity) { // Если массив заполнен, увеличиваем емкость
+            resize(currentCapacity * 2);
+        }
+        data[currentSize++] = value; // Добавляем новый элемент
+    }
+
+    void popBack() {
+        if (currentSize == 0) {
+            throw std::out_of_range("Array is empty, cannot pop!");
+        }
+        currentSize--; // Уменьшаем размер массива
+    }
+
+    int getAt(int index) {
+        if (index < 0 || index >= currentSize) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        return data[index]; // Возвращаем элемент по индексу
+    }
+
+    void setAt(int index, int value) {
+        if (index < 0 || index >= currentSize) {
+            throw std::out_of_range("Index out of bounds");
+        }
+        data[index] = value; // Устанавливаем значение по индексу
+    }
+
+    int size() {
+        return currentSize; // Возвращаем текущий размер
+    }
+
+    int capacity() {
+        return currentCapacity; // Возвращаем текущую емкость
+    }
+
+    ~DynamicArray() {
+        delete[] data; // Освобождаем память при уничтожении
+    }
+};
+
+// Класс для алгоритма сортировочной станции
+class ShuntingYard {
+private:
+    DoublyLinkedList input;      // Входной список
+    string output;     // Выходной список (постфиксная запись)
+    LinkedList operators;  // Стек операторов и функций
+
+    // Проверка, является ли строка числом
+    bool isNumber(const string& s) {
+        for (char c : s) {
+            if (!isdigit(c)) {  // Если не цифра, возвращаем false
+                return false;
+            }
+        }
+        return !s.empty(); // Проверяем, что строка не пустая
+    }
+
+
+    // Определение приоритета оператора
+    int getPrecedence(const string& op) {
+        if (op == "+" || op == "-") return 1;
+        if (op == "*" || op == "/") return 2;
+        if (op == "^") return 3;
+        if (op == "sin" || op == "cos") return 4;
+        return 0;
+    }
+
+    // Проверка, является ли токен оператором
+    bool isOperator(const string& token) {
+        return token == "+" || token == "-" || token == "*" || token == "/" || token == "^" || token == "sin" || token == "cos";
+    }
+
+
+    // Логика алгоритма сортировочной станции
+    void process() {
+        while (!input.isEmpty()) {
+            string token = input.getFront();
+            input.popFront();  // Удаляем элемент из входного списка
+
+            if (isNumber(token)) {
+                output += token + " ";  // Число добавляем в выходную строку
+            }
+
+            else if (isOperator(token)) {
+                // Учитываем приоритет операторов и проверяем верх стека
+                while (!operators.isEmpty() && isOperator(operators.peek()) &&
+                    getPrecedence(operators.peek()) >= getPrecedence(token)) {
+                    output += operators.peek() + " ";
+                    operators.pop();  // Удаляем оператор из стека
+                }
+                operators.push(token);  // Помещаем текущий оператор в стек
+            }
+            else if (token == "(") {
+                operators.push(token);  // Открывающую скобку помещаем в стек
+            }
+            else if (token == ")") {
+                // Выгружаем операторы до открывающей скобки
+                while (!operators.isEmpty() && operators.peek() != "(") {
+                    output += operators.peek() + " ";
+                    operators.pop();
+                }
+                operators.pop();  // Убираем открывающую скобку из стека
+              
+            }
+        }
+
+        // Выгружаем оставшиеся операторы из стека
+        while (!operators.isEmpty()) {
+            output += operators.peek() + " ";
+            operators.pop();
+        }
+    }
+
+    void parseExpression(const string& expression) {
+        stringstream ss(expression);
+        string token;
+        while (ss >> token) {
+            if (token == "sin" || token == "cos") {
+                input.pushBack(token);
+            }
+            else {
+                input.pushBack(token);
+            }
+        }
+    }
+
+public:
+    // Метод для добавления токена в входной список
+    void setInputExpression(const string& expression) {
+        parseExpression(expression);
+    }
+
+    // Метод для запуска алгоритма
+    void convertToPostfix() {
+        process(); // Запускаем преобразование
+    }
+
+    // Метод для вывода постфиксной записи
+    string getPostfix() {
+        return output;
+    }
+};
+
+// Главная функция
 int main() {
     setlocale(0, "");
-    DoublyLinkedList st;
-    st.pushBack("0");
-    st.pushBack("2");
-    st.insertAt(1, to_string(1));
-    cout << st.getAt(0) << endl;
-    cout << st.getAt(1) << endl;
-    cout << st.getAt(2) << endl;
-    /*st.push("5");
-    st.push("6");
-    st.printList();
-    st.pop();
-    cout << st.peek() << "\n";*/
+    ShuntingYard sy;
+
+    // Пример: добавляем токены выражения 3 + sin 30
+    
+    sy.setInputExpression("2 + sin 30 + 2 * 6 * ( 3 - 3 / 3 )");
+    // Преобразуем в постфиксную нотацию
+    sy.convertToPostfix();
+
+    // Вывод результата
+    cout << "Постфиксная запись: ";
+    cout << sy.getPostfix();
 
     return 0;
 }
+
+
+
